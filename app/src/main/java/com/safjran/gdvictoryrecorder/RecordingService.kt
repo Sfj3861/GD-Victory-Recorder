@@ -64,7 +64,8 @@ class RecordingService : Service() {
             (getSystemService(WINDOW_SERVICE) as WindowManager).defaultDisplay.getRealMetrics(metrics)
             // Downscale before encoding to reduce capture buffers on lower-memory devices.
             val quality = intent.getIntExtra(EXTRA_QUALITY, 1).coerceIn(0, 2)
-            val fps = intent.getIntExtra(EXTRA_FPS, 30).let { if (it == 24 || it == 60) it else 30 }
+            val requestedFps = intent.getIntExtra(EXTRA_FPS, 30)
+            val fps = if (requestedFps in setOf(24, 30, 60, 90, 120, 144, 240)) requestedFps else 30
             val maxWidth = when (quality) { 0 -> 960; 1 -> 1280; else -> metrics.widthPixels }
             val maxHeight = when (quality) { 0 -> 540; 1 -> 720; else -> metrics.heightPixels }
             val scale = minOf(1.0, maxWidth.toDouble() / metrics.widthPixels, maxHeight.toDouble() / metrics.heightPixels)
@@ -88,7 +89,7 @@ class RecordingService : Service() {
             display = projection!!.createVirtualDisplay("GDVictoryRecorder", width, height, metrics.densityDpi,
                 DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR, r.surface, null, handler)
             r.start()
-            notifyStatus("Grabando · " + fps + " FPS · " + when (quality) { 0 -> "Ahorro"; 1 -> "Equilibrada"; else -> "Alta" })
+            notifyStatus("Grabando · " + fps + " FPS solicitados · " + when (quality) { 0 -> "Ahorro"; 1 -> "Equilibrada"; else -> "Alta" })
         } catch (e: Exception) {
             getSharedPreferences("recorder", MODE_PRIVATE).edit().putString("last_error", e.message).apply()
             stopRecording(openEditor = false)
