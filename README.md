@@ -16,4 +16,6 @@ Aplicación Android para grabar partidas y completaciones de Geometry Dash.
 La detección visual automática del 100 % no está implementada: se usa el botón «Marcar victoria». Los FPS seleccionados son una frecuencia solicitada al codificador, no una garantía de FPS efectivos. El resultado depende de la frecuencia de actualización de la pantalla, Android, el codificador y la resolución. En muchos dispositivos 144 o 240 FPS no estarán disponibles para grabación de pantalla y el inicio puede fallar o producir menos fotogramas. El APK de Actions es de depuración, no está firmado para Google Play y debe probarse en un dispositivo Android real.
 
 ## Descargar APK
-Ve a **Actions** → **Build Android APK** → última ejecución completada correctamente → artefacto **GD-Victory-Recorder-debug**.
+La versión de prueba se publicará en [GitHub Releases](https://github.com/Sfj3861/GD-Victory-Recorder/releases). Al estar marcada como preliminar, debe probarse antes de confiar en ella para grabaciones importantes.
+
+Si una compilación aún no aparece en Releases, puedes consultar [Actions](https://github.com/Sfj3861/GD-Victory-Recorder/actions) y descargar el artefacto **GD-Victory-Recorder-debug** de la ejecución correcta más reciente.
