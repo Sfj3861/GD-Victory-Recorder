@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -39,3 +39,23 @@ jobs:
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 30
+      - name: Publish GitHub Release
+        if: github.event_name == 'push' && contains(github.event.head_commit.message, '[release]')
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v0.1.0
+          name: GD Victory Recorder v0.1.0
+          body: |
+            Primera versión de prueba de GD Victory Recorder.
+
+            - Grabación de pantalla para Geometry Dash.
+            - Marcador de victoria con parada automática tras 10 segundos.
+            - Selectores de FPS y calidad.
+            - Controles separados para micrófono y audio interno (según compatibilidad del dispositivo).
+            - Interfaz renovada con estilo oscuro y acentos neón.
+
+            Nota: versión de prueba. El funcionamiento de captura de audio y FPS altos depende del dispositivo.
+          files: app/build/outputs/apk/debug/app-debug.apk
+          fail_on_unmatched_files: true
+          draft: false
+          prerelease: true
