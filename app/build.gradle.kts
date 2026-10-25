@@ -3,10 +3,10 @@ plugins {
     id("org.jetbrains.kotlin.android")
 }
 android {
-    namespace = "com.safjran.geometryvictory"
+    namespace = "com.safjran.gdvictoryrecorder"
     compileSdk = 35
     defaultConfig {
-        applicationId = "com.safjran.geometryvictory"
+        applicationId = "com.safjran.gdvictoryrecorder"
         minSdk = 26
         targetSdk = 35
         versionCode = 1
