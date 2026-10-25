@@ -16,6 +16,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var stop: Button
     private lateinit var fpsSpinner: Spinner
     private lateinit var qualitySpinner: Spinner
+    private val fpsOptions = listOf(24, 30, 60, 90, 120, 144, 240)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,8 +37,10 @@ class MainActivity : AppCompatActivity() {
 
         root.addView(label("Fotogramas por segundo (FPS)"))
         fpsSpinner = Spinner(this)
-        fpsSpinner.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, listOf("24 FPS · menor consumo", "30 FPS · recomendado", "60 FPS · más fluido"))
-        fpsSpinner.setSelection(when (prefs.getInt("fps", 30)) { 24 -> 0; 60 -> 2; else -> 1 })
+        fpsSpinner.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item,
+            fpsOptions.map { "$it FPS" + when (it) { 30 -> " · recomendado"; 60 -> " · fluido"; 240 -> " · máximo"; else -> "" } })
+        val savedFps = prefs.getInt("fps", 30)
+        fpsSpinner.setSelection(fpsOptions.indexOf(savedFps).takeIf { it >= 0 } ?: 1)
         root.addView(fpsSpinner)
 
         root.addView(label("Calidad de grabación"))
@@ -46,7 +49,7 @@ class MainActivity : AppCompatActivity() {
         qualitySpinner.setSelection(prefs.getInt("quality", 1).coerceIn(0, 2))
         root.addView(qualitySpinner)
         root.addView(TextView(this).apply {
-            text = "El modo Ahorro reduce resolución y bitrate para consumir menos memoria y espacio. La calidad final depende de la pantalla del dispositivo."
+            text = "Los FPS reales dependen de la pantalla, Android y el codificador. Elegir 90–240 FPS no garantiza que el dispositivo pueda grabar a esa frecuencia. Ahorro reduce resolución y bitrate para consumir menos memoria y espacio."
             textSize = 13f; setTextColor(0xFFB9BED0.toInt()); setPadding(0,8,0,8)
         })
 
@@ -84,7 +87,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun requestCapture() {
         val prefs = getSharedPreferences("recorder", MODE_PRIVATE)
-        val fps = when (fpsSpinner.selectedItemPosition) { 0 -> 24; 2 -> 60; else -> 30 }
+        val fps = fpsOptions.getOrElse(fpsSpinner.selectedItemPosition) { 30 }
         val quality = qualitySpinner.selectedItemPosition.coerceIn(0, 2)
         prefs.edit().putInt("fps", fps).putInt("quality", quality).apply()
         val mgr = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
