@@ -8,6 +8,8 @@ import android.content.pm.PackageManager
 import android.media.projection.MediaProjectionManager
 import android.os.Bundle
 import android.view.Gravity
+import android.widget.FrameLayout
+import android.graphics.drawable.GradientDrawable
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -40,7 +42,10 @@ class MainActivity : AppCompatActivity() {
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(20), dp(22), dp(20), dp(28))
-            setBackgroundColor(bg)
+            background = GradientDrawable(
+                GradientDrawable.Orientation.TOP_BOTTOM,
+                intArrayOf(0xFF17152B.toInt(), 0xFF10121B.toInt(), 0xFF0B0D14.toInt())
+            )
         }
 
         val hero = LinearLayout(this).apply {
@@ -48,11 +53,15 @@ class MainActivity : AppCompatActivity() {
             gravity = Gravity.CENTER_VERTICAL
             setPadding(0, 0, 0, dp(18))
         }
-        hero.addView(ImageView(this).apply {
-            setImageResource(R.drawable.ic_launcher)
-            contentDescription = "Icono de GD Victory Recorder"
-            scaleType = ImageView.ScaleType.FIT_CENTER
-        }, LinearLayout.LayoutParams(dp(68), dp(68)))
+        hero.addView(FrameLayout(this).apply {
+            background = rounded(0xFF33205F.toInt(), 22, 0xFF8B5CFF.toInt(), 1)
+            addView(ImageView(this@MainActivity).apply {
+                setImageResource(R.drawable.ic_launcher)
+                contentDescription = "Icono de GD Victory Recorder"
+                scaleType = ImageView.ScaleType.FIT_CENTER
+                setPadding(dp(8), dp(8), dp(8), dp(8))
+            }, FrameLayout.LayoutParams(-1, -1))
+        }, LinearLayout.LayoutParams(dp(72), dp(72)))
         val titleColumn = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(14), 0, 0, 0)
@@ -68,25 +77,31 @@ class MainActivity : AppCompatActivity() {
         hero.addView(titleColumn)
         root.addView(hero)
         root.addView(TextView(this).apply {
-            text = "Tu partida. Tu victoria. Tu clip."
+            text = "CAPTURA LA VICTORIA"
             textSize = 20f; setTextColor(white); typeface = android.graphics.Typeface.DEFAULT_BOLD
             setPadding(0, 0, 0, dp(5))
         })
         root.addView(TextView(this).apply {
-            text = "Graba la pantalla, mezcla el audio y recorta el comienzo después de la run."
+            text = "Tu run merece un clip a la altura. Configura, graba y guarda el momento."
             textSize = 14f; setTextColor(muted); setPadding(0, 0, 0, dp(18))
         })
 
-        val videoCard = card()
-        val videoContent = cardContent(videoCard, "VÍDEO", "Ajusta fluidez y tamaño del archivo")
+        val videoCard = card(0xFF8B5CFF.toInt())
+        val videoContent = cardContent(videoCard, "01  /  VÍDEO", "Ajusta la fluidez y el peso del archivo")
         videoContent.addView(label("Fotogramas por segundo"))
-        fpsSpinner = Spinner(this)
+        fpsSpinner = Spinner(this).apply {
+            background = rounded(0xFF25283A.toInt(), 12, 0xFF46415F.toInt(), 1)
+            setPadding(dp(10), dp(3), dp(10), dp(3))
+        }
         fpsSpinner.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item,
             fpsOptions.map { "$it FPS" + when (it) { 30 -> " · recomendado"; 60 -> " · fluido"; 240 -> " · máximo"; else -> "" } })
         fpsSpinner.setSelection(fpsOptions.indexOf(prefs.getInt("fps", 30)).takeIf { it >= 0 } ?: 1)
         videoContent.addView(fpsSpinner, matchWrap())
         videoContent.addView(label("Calidad de vídeo"))
-        qualitySpinner = Spinner(this)
+        qualitySpinner = Spinner(this).apply {
+            background = rounded(0xFF25283A.toInt(), 12, 0xFF46415F.toInt(), 1)
+            setPadding(dp(10), dp(3), dp(10), dp(3))
+        }
         qualitySpinner.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item,
             listOf("Ahorro · 540p aprox.", "Equilibrada · 720p aprox.", "Alta · resolución completa"))
         qualitySpinner.setSelection(prefs.getInt("quality", 1).coerceIn(0, 2))
@@ -94,8 +109,8 @@ class MainActivity : AppCompatActivity() {
         videoContent.addView(note("La tasa de FPS real depende del dispositivo y del codificador. 90–240 FPS son valores solicitados, no garantizados."))
         root.addView(videoCard)
 
-        val audioCard = card()
-        val audioContent = cardContent(audioCard, "MEZCLADOR DE AUDIO", "Controla cada fuente por separado")
+        val audioCard = card(0xFF00D9A6.toInt())
+        val audioContent = cardContent(audioCard, "02  /  AUDIO MIX", "Dos fuentes. Dos controles independientes.")
         micSlider = Slider(this).apply {
             valueFrom = 0f; valueTo = 200f; stepSize = 5f
             value = prefs.getInt("mic_volume", 100).coerceIn(0, 200).toFloat()
@@ -120,12 +135,16 @@ class MainActivity : AppCompatActivity() {
         audioContent.addView(note("En Android 10 o posterior se captura el audio de aplicaciones que permiten compartirlo. En versiones anteriores solo se puede grabar el micrófono."))
         root.addView(audioCard)
 
-        val controls = card()
-        val controlsContent = cardContent(controls, "GRABACIÓN", "Marca el 100 % manualmente")
+        val controls = card(0xFFFFC857.toInt())
+        val controlsContent = cardContent(controls, "03  /  SESIÓN", "Tú decides cuándo empieza y termina el clip")
         status = TextView(this).apply {
-            text = "●  LISTO PARA GRABAR"
-            textSize = 13f; setTextColor(mint)
-            setPadding(0, dp(2), 0, dp(14))
+            text = "●   SISTEMA LISTO"
+            textSize = 12f; setTextColor(mint)
+            typeface = android.graphics.Typeface.DEFAULT_BOLD
+            letterSpacing = 0.05f
+            background = rounded(0xFF10372F.toInt(), 30, 0xFF1E6B59.toInt(), 1)
+            setPadding(dp(12), dp(9), dp(12), dp(9))
+            layoutParams = LinearLayout.LayoutParams(-2, -2).apply { bottomMargin = dp(14) }
         }
         controlsContent.addView(status)
         start = actionButton("INICIAR GRABACIÓN", 0xFF7C4DFF.toInt()) { requestCapture() }
@@ -157,14 +176,22 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
-    private fun card() = MaterialCardView(this).apply {
-        radius = dp(18).toFloat()
-        cardElevation = dp(2).toFloat()
+    private fun card(accent: Int = 0xFF8B5CFF.toInt()) = MaterialCardView(this).apply {
+        radius = dp(20).toFloat()
+        cardElevation = dp(5).toFloat()
         setCardBackgroundColor(surface)
         strokeWidth = dp(1)
-        setStrokeColor(0xFF303449.toInt())
-        layoutParams = LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(14) }
+        setStrokeColor(0xFF34364B.toInt())
+        foreground = rounded(0x00000000, 20, accent, 1)
+        layoutParams = LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(15) }
     }
+
+    private fun rounded(color: Int, radiusDp: Int, stroke: Int? = null, strokeDp: Int = 1) =
+        GradientDrawable().apply {
+            setColor(color)
+            cornerRadius = dp(radiusDp).toFloat()
+            if (stroke != null) setStroke(dp(strokeDp), stroke)
+        }
 
     private fun cardContent(card: MaterialCardView, heading: String, subheading: String): LinearLayout {
         val content = LinearLayout(this).apply {
@@ -204,10 +231,24 @@ class MainActivity : AppCompatActivity() {
 
     private fun actionButton(title: String, color: Int, action: () -> Unit) = Button(this).apply {
         text = title; isAllCaps = false; textSize = 13f
-        setTextColor(white); backgroundTintList = android.content.res.ColorStateList.valueOf(color)
-        minHeight = dp(48)
+        typeface = android.graphics.Typeface.DEFAULT_BOLD
+        letterSpacing = 0.015f
+        setTextColor(white); backgroundTintList = null
+        background = GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,
+            intArrayOf(color, blend(color, 0xFF000000.toInt(), 0.18f))).apply {
+            cornerRadius = dp(14).toFloat()
+        }
+        minHeight = dp(52)
+        elevation = dp(2).toFloat()
         setOnClickListener { action() }
         layoutParams = LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(9) }
+    }
+
+    private fun blend(from: Int, to: Int, ratio: Float): Int {
+        fun channel(a: Int, b: Int, shift: Int) =
+            (((a shr shift) and 0xFF) * (1f - ratio) + ((b shr shift) and 0xFF) * ratio).toInt()
+        return (channel(from, to, 24) shl 24) or (channel(from, to, 16) shl 16) or
+            (channel(from, to, 8) shl 8) or channel(from, to, 0)
     }
 
     private fun matchWrap() = LinearLayout.LayoutParams(-1, -2)
