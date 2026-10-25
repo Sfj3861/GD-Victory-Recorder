@@ -62,8 +62,15 @@ class RecordingService : Service() {
             val metrics = android.util.DisplayMetrics()
             @Suppress("DEPRECATION")
             (getSystemService(WINDOW_SERVICE) as WindowManager).defaultDisplay.getRealMetrics(metrics)
-            val width = (metrics.widthPixels / 2) * 2
-            val height = (metrics.heightPixels / 2) * 2
+            // Downscale before encoding to reduce capture buffers on lower-memory devices.
+            val quality = intent.getIntExtra(EXTRA_QUALITY, 1).coerceIn(0, 2)
+            val fps = intent.getIntExtra(EXTRA_FPS, 30).let { if (it == 24 || it == 60) it else 30 }
+            val maxWidth = when (quality) { 0 -> 960; 1 -> 1280; else -> metrics.widthPixels }
+            val maxHeight = when (quality) { 0 -> 540; 1 -> 720; else -> metrics.heightPixels }
+            val scale = minOf(1.0, maxWidth.toDouble() / metrics.widthPixels, maxHeight.toDouble() / metrics.heightPixels)
+            val width = ((metrics.widthPixels * scale).toInt() / 2) * 2
+            val height = ((metrics.heightPixels * scale).toInt() / 2) * 2
+            val bitRate = when (quality) { 0 -> 2_500_000; 1 -> 5_000_000; else -> 10_000_000 }
             val dir = getExternalFilesDir(android.os.Environment.DIRECTORY_MOVIES)!!
             if (!dir.exists()) dir.mkdirs()
             output = File(dir, "run_${System.currentTimeMillis()}.mp4")
@@ -75,13 +82,13 @@ class RecordingService : Service() {
             r.setOutputFile(output!!.absolutePath)
             r.setVideoEncoder(MediaRecorder.VideoEncoder.H264)
             r.setVideoSize(width, height)
-            r.setVideoFrameRate(30)
-            r.setVideoEncodingBitRate(8_000_000)
+            r.setVideoFrameRate(fps)
+            r.setVideoEncodingBitRate(bitRate)
             r.prepare()
             display = projection!!.createVirtualDisplay("GDVictoryRecorder", width, height, metrics.densityDpi,
                 DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR, r.surface, null, handler)
             r.start()
-            notifyStatus("Grabando pantalla — marca el 100 % al ganar")
+            notifyStatus("Grabando · " + fps + " FPS · " + when (quality) { 0 -> "Ahorro"; 1 -> "Equilibrada"; else -> "Alta" })
         } catch (e: Exception) {
             getSharedPreferences("recorder", MODE_PRIVATE).edit().putString("last_error", e.message).apply()
             stopRecording(openEditor = false)
@@ -131,5 +138,7 @@ class RecordingService : Service() {
         const val ACTION_STOP_NOW = "com.safjran.gdvictoryrecorder.STOP_NOW"
         const val EXTRA_RESULT_CODE = "result_code"
         const val EXTRA_RESULT_DATA = "result_data"
+        const val EXTRA_FPS = "recording_fps"
+        const val EXTRA_QUALITY = "recording_quality"
     }
 }
