@@ -129,7 +129,8 @@ class AudioMixRecorder(
                 if (inputIndex >= 0) {
                     val input = codec.getInputBuffer(inputIndex)
                     if (input != null) {
-                        input.clear().order(ByteOrder.nativeOrder())
+                        input.clear()
+                        input.order(ByteOrder.LITTLE_ENDIAN)
                         for (i in 0 until count) input.putShort(mixed[i])
                         val pts = samplesWritten * 1_000_000L / 44100L
                         codec.queueInputBuffer(inputIndex, 0, count * 2, pts, 0)
